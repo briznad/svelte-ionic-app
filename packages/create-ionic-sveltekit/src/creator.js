@@ -9,9 +9,12 @@ import process from 'process';
 import {
   getDemoIonicApp,
   getIonicVariables,
-  getTSCapacitorConfig,
+  parseCapacitorConfig,
   mkdirp,
-  whichPMRuns
+  whichPMRuns,
+  parseLayout,
+  parseTabsComponent,
+  getHelperUtility,
 } from './utils.js';
 
 // NOTE: Any changes here must also be reflected in the --help output in utils.ts and shortcut expansions in bin.ts.
@@ -25,7 +28,7 @@ export class IonicSvelteOptions {
   name = 'new-ionic-svelte-app';
   template = 'skeleton';
   types = 'typescript';
-  prettier = true;
+  prettier = false;
   eslint = true;
   playwright = false;
   vitest = false;
@@ -83,7 +86,7 @@ export async function createIonicSvelte(opts) {
   opts.packagemanager = whichPMRuns()?.name || 'npm';
 
   // the order matters due to dependency resolution, because yarn
-  let packages = ['svelte-preprocess', '@sveltejs/adapter-static']; // 
+  let packages = ['svelte-preprocess', '@sveltejs/adapter-static']; //
   if (opts?.capacitor) packages.push('@capacitor/cli');
 
   // if (opts?.typography) packages.push('@tailwindcss/typography');
@@ -165,13 +168,21 @@ export async function createIonicSvelte(opts) {
     mkdirp(path.join('src', 'lib'));
     mkdirp(path.join('src', 'theme'));
 
-    out(path.resolve(process.cwd(), 'src/routes/', '+layout.svelte'), createSvelteKitLayout(opts));
+    out(path.resolve(process.cwd(), 'src/theme/', 'variables.css'), getIonicVariables());
+
+    out(path.resolve(process.cwd(), 'src/lib/utilities/', 'helper.js'), getHelperUtility());
 
     out(path.resolve(process.cwd(), 'src/routes/', '+layout.ts'), 'export const ssr = false;\n');
 
-    out(path.resolve(process.cwd(), 'src/theme/', 'variables.css'), getIonicVariables());
+    out(path.resolve(process.cwd(), 'src/routes/', '+layout.svelte'), parseLayout(opts.types === 'typescript'));
 
-    out(path.resolve(process.cwd(), 'src/routes/', '+page.svelte'), getDemoIonicApp());
+    out(path.resolve(process.cwd(), 'src/lib/components/', 'Tabs.svelte'), parseTabsComponent(opts.types === 'typescript'));
+
+    out(path.resolve(process.cwd(), 'src/routes/', '+page.svelte'), parsePage1(opts.types === 'typescript'));
+
+    out(path.resolve(process.cwd(), 'src/routes/planets/', '+page.svelte'), parsePage2(opts.types === 'typescript'));
+
+    out(path.resolve(process.cwd(), 'src/routes/planets/earth/', '+page.svelte'), parsePage3(opts.types === 'typescript'));
 
     // tsconfig
     if (opts.types == 'typescript') {
@@ -231,7 +242,7 @@ export async function createIonicSvelte(opts) {
       if (opts.types == 'typescript')
         out(
           'capacitor.config.ts',
-          getTSCapacitorConfig({
+          parseCapacitorConfig({
             appId: opts.name + '.ionic.io',
             appName: opts.name,
             ip: ip.address() // 'http://192.168.137.1'
@@ -264,26 +275,35 @@ export async function createIonicSvelte(opts) {
 }
 
 function createSvelteConfig() {
-  const str = `import adapter from '@sveltejs/adapter-static'
-import preprocess from "svelte-preprocess";
+  return `import adapter from '@sveltejs/adapter-static'
+import { sveltePreprocess } from "svelte-preprocess";
+
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: preprocess(),
-
-	kit: {
-		adapter: adapter({
-			pages: 'build',
-			assets: 'build',
-			fallback: 'index.html',
-			precompress: false
-		})
-	}
+	preprocess : sveltePreprocess(),
+	kit        : {
+		adapter : adapter({
+			pages       : 'build',
+			assets      : 'build',
+			fallback    : 'index.html',
+			precompress : false,
+		}),
+		alias   : {
+			// file path shortcuts
+			'$actions'    : './src/lib/actions',
+      '$images'     : './src/lib/images',
+			'$components' : './src/lib/components',
+			'$services'   : './src/lib/services',
+			'$stores'     : './src/lib/stores',
+			'$types'      : './src/lib/types',
+			'$utilities'  : './src/lib/utilities',
+		},
+	},
 };
 
 export default config;
 `;
-  return str;
 }
 
 // TODO - this is for monorepos only, need to see everything that needs to be modified for monorepos
@@ -306,57 +326,6 @@ function createViteConfig(opts) {
   const insertPoint = vite.indexOf(token) + token.length;
   const str = vite.slice(0, insertPoint) + insertString + vite.slice(insertPoint);
   fs.writeFileSync(filename, str);
-}
-
-function createSvelteKitLayout(opts) {
-  const str = `<script${opts.types == 'typescript' ? ` lang='ts'` : ''}>
-	import { setupIonicBase } from 'ionic-svelte';
-
-	/* Call Ionic's setup routine. */
-	setupIonicBase();
-
-	/* Import all components. (You can selectively import components instead; see below.) */
-	import 'ionic-svelte/components/all';
-
-	/* Theme variables */
-	import '../theme/variables.css';
-
-	/*
-		This part - import 'ionic-svelte/components/all'; - loads all components at once. Importing this way adds 80 components and >800kb (uncompressed) to your bundle.
-
-		Alternately, you can choose to import only the components you want to use.
-
-		Doing selective imports in this file is recommended because you only have to do such imports once.
-		If you like to code-split differently, you are free to import whereever you like.
-
-		Example: If you replace the line import 'ionic-svelte/components/all'; with the imports below, the resulting bundle becomes much smaller.
-
-		import 'ionic-svelte/components/ion-app';
-		import 'ionic-svelte/components/ion-card';
-		import 'ionic-svelte/components/ion-card-title';
-		import 'ionic-svelte/components/ion-card-subtitle';
-		import 'ionic-svelte/components/ion-card-header';
-		import 'ionic-svelte/components/ion-card-content';
-		import 'ionic-svelte/components/ion-button';
-		import 'ionic-svelte/components/ion-item';
-		import 'ionic-svelte/components/ion-label';
-
-		To see the full list of possible imports, click ionic-svelte-components-all-import above.
-
-		When you decide to do selective imports, ion-app must be imported in this file like this:
-
-	    import 'ionic-svelte/components/ion-app';
-
-		Report issues here - https://github.com/Tommertom/svelte-ionic-npm/issues
-		Want to know more about what is happening? Follow me on X! - https://x.com/Tommertomm
-		Discord channel on Ionic server - https://discordapp.com/channels/520266681499779082/1049388501629681675
-	*/
-</script>
-
-<ion-app>
-	<slot />
-</ion-app>`;
-  return str;
 }
 
 function out(filename, data) {

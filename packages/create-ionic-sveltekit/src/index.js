@@ -8,14 +8,14 @@ import { dist, getHelpText } from './utils.js';
 
 /* Ionic Svelte Create NPM script
 
-Taken from 
+Taken from
 https://github.com/skeletonlabs/create-skeleton-app
 
 So all kudos to the Skeleton crew
 
 Go to their Discord - https://discord.com/invite/EXqV7W8MtY
 Use their great tools - https://www.skeleton.dev/
- 
+
 */
 
 async function main() {
@@ -165,7 +165,8 @@ async function parseArgs() {
 			q: 'quiet',
 			v: 'verbose',
 			i: 'ionicons',
-			c: 'capacitor'
+			c: 'capacitor',
+			t: 'types'
 		},
 		boolean: [
 			'help',
@@ -200,7 +201,7 @@ export async function askForMissingParams(opts) {
 	const disclaimer = `
 ${bold(cyan('Welcome to Ionic Svelte '))}
 
-This script will install a SvelteKit project using their SvelteKit create script. 
+This script will install a SvelteKit project using their SvelteKit create script.
 And then adds Ionic power to it - Ionic Elements, Ionicons (optional) and CapacitorJS (optional)
 
 - Ionicons - free package of icons to use in your app
@@ -355,16 +356,10 @@ Problems? Open an issue on ${cyan('https://github.com/Tommertom/svelte-ionic-npm
 	const skelOpts = new IonicSvelteOptions();
 	Object.assign(skelOpts, opts);
 
-	// console.log('skelOpts', skelOpts)
-
 	//Map some values for compat with what svelte-create expects.  Note that the skeleton references below
 	//have nothing to do with us, but rather create-svelte's internal naming for their starter templates.
-	if (opts.framework == 'svelte-kit') {
-		opts.template = 'skeleton';
-	}
-	if (opts.framework == 'svelte-kit-lib') {
-		opts.template = 'skeletonlib';
-	}
+	opts.template = 'skeleton';
+
 	return skelOpts;
 }
 main();

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// determine which package manager is running
 export function whichPMRuns() {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) {
@@ -44,24 +45,23 @@ export function getHelpText() {
 	// Why not array of arrays, TBH it's more readable in source like this and easy to edit with column selection etc.
 	// But the advantage would be that padEnd could be adjusted to the console.width... will wait for feedback.
 	return `
-Option              Short   Quiet Default   Values                      Description
+Option              Short   Default   Values                      Description
 --help              -h                                                  This help screen
 --quiet             -q                                                  Quiet mode - see below
 --verbose           -v                                                  Show shell output for troubleshooting
---name              -n      new-skel-app    string, no spaces           Name of the directory for the project
---types                     typescript      typescript|checkjs          Typescipt of Javascript with JSDoc
---prettier                  true            true|false                  Whether Prettier is added
---eslint                    true            true|false                  Whether ESLint is added
---playwright                false           true|false                  Whether Playwright is added
---framework         -f      svelte-kit      svelte-kit|svelte-kit-lib   Setup as Svelte Kit library project or library
+--name              -n      new-app         string, no spaces           Name of the directory for the project
 --path              -p      ''              relative or absolute path   Location to install, name is appended
---ionicons          -i      false           true|false                  Ìnclude Ionic icon library Ionicons
+--ionicons          -i      true            true|false                  Include Ionic icon library Ionicons
 --capacitor         -c      false           true|false                  Install dependencies for Capacitor
+--types             -t      typescript      typescript|checkjs          Typescipt or Javascript with JSDoc
+--eslint                    true            true|false                  Whether ESLint is added
+--prettier                  false           true|false                  Whether Prettier is added
+--playwright                false           true|false                  Whether Playwright is added
+--vitest                    false           true|false                  Whether Vitest is added
 
-Quiet mode is for automated installs for testing, CI/CD.  It will take all of the default values in the
-Quiet Default column, but you can provide any other flags to override as you see fit.  If you just want
-to generate a new project but still ask for a name, you need to provide all the other args except the 
-ones to be filled in by the user.
+Quiet mode is for automated installs, for testing, or CI/CD. It will take all of the default values in the
+Default column, but you can provide any other flags to override as you see fit. When not in quiet mode, any
+arguments that have not been passed in will be prompted for.
 `;
 }
 
@@ -457,9 +457,10 @@ body.dark.md {
 
 export function getDemoIonicApp() {
 	return `
-  <ion-card>
+<ion-card>
 	<ion-card-header>
 		<ion-card-subtitle>Great success!!</ion-card-subtitle>
+
 		<ion-card-title>Welcome to your app!</ion-card-title>
 	</ion-card-header>
 
@@ -470,41 +471,41 @@ export function getDemoIonicApp() {
 
 	<ion-item>
 		<ion-label>Visit Ionic Showcase app with sourceviewer</ion-label>
-		<ion-button href="https://ionic-svelte.firebaseapp.com/" target="_new" fill="outline" slot="end"
-			>View</ion-button
-		>
+
+		<ion-button href="https://ionic-svelte.firebaseapp.com/" target="_new" fill="outline" slot="end">View</ion-button>
 	</ion-item>
 
 	<ion-item>
 		<ion-label>Visit Ionic component docs</ion-label>
+
 		<ion-button
 			href="https://ionicframework.com/docs/components"
 			target="_new"
 			fill="outline"
-			slot="end">View</ion-button
-		>
+			slot="end"
+		>View</ion-button>
 	</ion-item>
+
 	<ion-item>
 		<ion-label>Visit Svelte Kit docs</ion-label>
+
 		<ion-button
 			href="https://kit.svelte.dev/docs/introduction"
 			target="_new"
 			fill="outline"
-			slot="end">View</ion-button
-		>
+			slot="end"
+		>View</ion-button>
 	</ion-item>
 	<ion-item>
 		<ion-label>Visit Svelte docs</ion-label>
-		<ion-button href="https://svelte.dev/docs" target="_new" fill="outline" slot="end"
-			>View</ion-button
-		>
+
+		<ion-button href="https://svelte.dev/docs" target="_new" fill="outline" slot="end">View</ion-button>
 	</ion-item>
 </ion-card>
-
-  `;
+	`;
 }
 
-export function getTSCapacitorConfig(config) {
+export function parseCapacitorConfig(config) {
 	const { appId, appName, ip } = config;
 
 	return `
@@ -529,4 +530,372 @@ if (process.argv.includes('-hmr')) console.log('WARNING: running capacitor with 
 
 export default config;
   `;
+}
+
+export function parseLayout(useTypescript) {
+  return `<script${useTypescript ? ' lang="ts"' : ''}>
+	import { setupIonicBase } from 'ionic-svelte';
+
+	/* Call Ionic's setup routine. */
+	setupIonicBase();
+
+	/* Import all components. (You can selectively import components instead; see below.) */
+	import 'ionic-svelte/components/all';
+
+	/* Theme variables */
+	import '../theme/variables.css';
+
+	/*
+		This part - import 'ionic-svelte/components/all'; - loads all components at once. Importing this way adds 80 components and >800kb (uncompressed) to your bundle.
+
+		Alternately, you can choose to import only the components you want to use.
+
+		Doing selective imports in this file is recommended because you only have to do such imports once.
+		If you like to code-split differently, you are free to import wherever you like.
+
+		Example: If you replace the line import 'ionic-svelte/components/all'; with the imports below, the resulting bundle becomes much smaller.
+
+		import 'ionic-svelte/components/ion-app';
+		import 'ionic-svelte/components/ion-card';
+		import 'ionic-svelte/components/ion-card-title';
+		import 'ionic-svelte/components/ion-card-subtitle';
+		import 'ionic-svelte/components/ion-card-header';
+		import 'ionic-svelte/components/ion-card-content';
+		import 'ionic-svelte/components/ion-button';
+		import 'ionic-svelte/components/ion-item';
+		import 'ionic-svelte/components/ion-label';
+
+		To see the full list of possible imports, click ionic-svelte-components-all-import above.
+
+		When you decide to do selective imports, ion-app must be imported in this file like this:
+
+	    import 'ionic-svelte/components/ion-app';
+
+		Report issues here - https://github.com/Tommertom/svelte-ionic-npm/issues
+		Want to know more about what is happening? Follow me on X! - https://x.com/Tommertomm
+		Discord channel on Ionic server - https://discordapp.com/channels/520266681499779082/1049388501629681675
+	*/
+</script>
+
+<ion-app>
+	<slot />
+</ion-app>
+`;
+}
+
+export function parseTabsComponent(useTypescript) {
+  return `<script${useTypescript ? ' lang="ts"' : ''} module>
+  import type { Snippet } from "svelte";
+
+  import { onNavigate, goto } from "$app/navigation";
+
+  import { page } from "$app/state";
+
+  import { HEK, preventDefault } from "$utilities/helper";
+
+  type BaseTab = {
+    link: string;
+    descendentsActiveStatus?: boolean;
+    matchPath?: RegExp;
+  };
+
+  interface TabOptionalTitle extends BaseTab {
+    title?: string;
+    icon: string;
+  }
+
+  interface TabOptionalIcon extends BaseTab {
+    title: string;
+    icon?: string;
+  }
+
+  export type Tab = TabOptionalTitle | TabOptionalIcon;
+
+  type Props = {
+    content: Snippet;
+    tabs: Tab[];
+    tabPosition?: "top" | "bottom";
+    viewTransition?: boolean;
+  };
+</script>
+
+<script${useTypescript ? ' lang="ts"' : ''}>
+  let { content, tabs, tabPosition, viewTransition = true }: Props = $props();
+
+  onNavigate((navigation) => {
+    if (!(viewTransition && document.startViewTransition)) {
+      return;
+    }
+
+    return new Promise((resolve) => {
+      document.startViewTransition(async () => {
+        resolve();
+
+        await navigation.complete;
+      });
+    });
+  });
+
+  function isSelected(tab: Tab, pathname: string): boolean {
+    if (tab.matchPath) {
+      return tab.matchPath.test(pathname);
+    }
+
+    return tab.descendentsActiveStatus === true
+      ? pathname.startsWith(tab.link)
+      : tab.link === pathname;
+  }
+</script>
+
+<ion-tabs>
+  <main class="tab-content">
+    {@render content?.()}
+  </main>
+
+  <ion-tab-bar slot={tabPosition ?? "bottom"}>
+    {#each tabs as tab}
+      <ion-tab-button
+        selected={isSelected(tab, page.url.pathname)}
+        onclick={preventDefault(() => goto(tab.link))}
+        onkeydown={HEK(preventDefault(() => goto(tab.link)))}
+        role="tab"
+        tabindex="0"
+      >
+        {#if tab.icon}
+          <ion-icon icon={tab.icon}></ion-icon>
+        {/if}
+
+        {#if tab.title}
+          {tab.title}
+        {/if}
+      </ion-tab-button>
+    {/each}
+  </ion-tab-bar>
+</ion-tabs>
+
+<style>
+  .tab-content {
+    max-width: 600px;
+    justify-self: center;
+  }
+
+  ion-tab-bar {
+    view-transition-name: tab-bar;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-from-right {
+    from {
+      transform: translateX(30px);
+    }
+  }
+
+  @keyframes slide-to-left {
+    to {
+      transform: translateX(-30px);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :root::view-transition-old(root) {
+      animation:
+        90ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+        300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
+    }
+
+    :root::view-transition-new(root) {
+      animation:
+        210ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
+        300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
+    }
+  }
+</style>
+`;
+}
+
+export function getHelperUtility() {
+  return `export function handleEnterKey(fn) {
+	return function(event) {
+		if (event.key === 'Enter') {
+			fn.call(this, event);
+		}
+	};
+}
+
+export const HEK = handleEnterKey;
+
+export function preventDefault(fn) {
+	return function(event) {
+		event.preventDefault();
+
+		fn.call(this, event);
+	};
+}
+`;
+}
+
+export function parsePage1(useTypescript) {
+  return `<script${useTypescript ? ' lang="ts"' : ''} module>
+  import { HEK } from "$utilities/helper";
+
+  import img from "$images/home.png";
+</script>
+
+<script${useTypescript ? ' lang="ts"' : ''}>
+  let count = $state(0);
+
+  const verb = $derived("click" + (count === 1 ? "" : "s"));
+
+  function onclick() {
+    count++;
+  }
+</script>
+
+<ion-card>
+  <img
+    src={img}
+    alt="illustrated house"
+    style="--rotation: {count * 22.5}deg;"
+  />
+
+  <ion-card-header>
+    <ion-card-title>Homepage</ion-card-title>
+
+    <ion-card-subtitle>Welcome</ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content>
+    <ion-button {onclick} onkeydown={HEK(onclick)} role="button" tabindex="0">
+      {count}
+      {verb}
+    </ion-button>
+  </ion-card-content>
+</ion-card>
+
+<style>
+  img {
+    transform: rotate(var(--rotation));
+  }
+</style>
+`;
+}
+
+export function parsePage2(useTypescript) {
+  return `<script${useTypescript ? ' lang="ts"' : ''} module>
+  import img from "$images/planets.jpg";
+</script>
+
+<script${useTypescript ? ' lang="ts"' : ''}>
+  let count = $state(8);
+
+  const planets = [
+    "Mercury",
+    "Venus",
+    "Earth",
+    "Mars",
+    "Jupiter",
+    "Saturn",
+    "Uranus",
+    "Neptune",
+  ];
+
+  function onionInput(event) {
+    count = (event.detail?.value as number) ?? 8;
+  }
+</script>
+
+<ion-card>
+  <img src={img} alt="planets of our solar system" />
+
+  <ion-card-header>
+    <ion-card-title>Planets</ion-card-title>
+
+    <ion-card-subtitle>{count} Planets</ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content>
+    <ion-range
+      min={4}
+      max={12}
+      value={count}
+      aria-label="planet count"
+      {onionInput}
+    ></ion-range>
+
+    <ol>
+      {#snippet planetLink(planet)}
+        <a href="/planets/{planet.toLowerCase()}">{planet}</a>
+      {/snippet}
+
+      {#each Array(count) as _, index}
+        {@const planet = planets[index] ?? "[Undiscovered]"}
+
+        <li>
+          {#if planet === "Earth"}
+            {@render planetLink(planet)}
+          {:else}
+            {planet}
+          {/if}
+        </li>
+      {/each}
+    </ol>
+  </ion-card-content>
+</ion-card>
+
+<style></style>
+`;
+}
+
+export function parsePage3(useTypescript) {
+  return `<script${useTypescript ? ' lang="ts"' : ''} module>
+  import img from "$images/earth.jpg";
+</script>
+
+<script${useTypescript ? ' lang="ts"' : ''}>
+  const elements = ["oxygen", "silicon", "aluminum", "iron", "magnesium"];
+
+  function onionItemReorder(event) {
+    event?.detail?.complete();
+  }
+</script>
+
+<ion-card>
+  <img src={img} alt="Earth from space" />
+
+  <ion-card-header>
+    <ion-card-title>Earth</ion-card-title>
+
+    <ion-card-subtitle>3rd Rock from the Sun</ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content>
+    <ion-list>
+      <ion-list-header>
+        <ion-label>Most common elements</ion-label>
+      </ion-list-header>
+
+      <ion-reorder-group disabled={false} {onionItemReorder}>
+        {#each elements as element, index}
+          <ion-item>
+            <ion-label>{element}</ion-label>
+
+            <ion-reorder></ion-reorder>
+          </ion-item>
+        {/each}
+      </ion-reorder-group>
+    </ion-list>
+  </ion-card-content>
+</ion-card>
+`;
 }
