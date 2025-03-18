@@ -1,6 +1,6 @@
 {
 	"name": "ionic-sveltekit",
-	"description": "Create a new project using SvelteKit with Ionic.",
+	"description": "Use Ionic UI components with SvelteKit",
 	"version": "0.0.1",
 	"private": false,
 	"repository": {
