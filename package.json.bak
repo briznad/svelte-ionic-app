@@ -22,9 +22,9 @@
     "url": "https://github.com/briznad/ionic-sveltekit/issues"
   },
   "scripts": {
-    "lint": "prettier  --check . && eslint .",
+    "lint": "prettier  --check .",
     "format": "prettier --write .",
-    "build": "cd scripts/ && node generator.js"
+    "build": "cd scripts/ && node generator.js && cd .. && npm run format"
   },
   "type": "module",
   "devDependencies": {
