@@ -7,7 +7,7 @@
 </p>
 <br>
 <p align="center">
-  A library to include Ionic in your Svelte and SvelteKit app 
+  A library to include Ionic in your Svelte and SvelteKit app
 </p>
 <br>
 
@@ -72,8 +72,8 @@ adapter: adapter({
 Integration of Ionic
 
 - `npm i @ionic/core ionic-svelte`
-- create a theme folder/file that contains the colours for Ionic (see starterfiles/theme). Example: https://raw.githubusercontent.com/Tommertom/svelte-ionic-app/main/starterfiles/theme/variables.css
-- the top-route layout file `+layout.svelte` (Kit) or top root module (others) needs to run `setupIonicSvelte()` and import the theme stylesheet before anything else - also see starterfiles/+layout.svelte. Example:
+- create a theme folder/file that contains the colors for Ionic (see starter_files/theme). Example: https://raw.githubusercontent.com/Tommertom/svelte-ionic-app/main/starter_files/theme/variables.css
+- the top-route layout file `+layout.svelte` (Kit) or top root module (others) needs to run `setupIonicBase()` and import the theme stylesheet before anything else - also see `starter_files/+layout.svelte`. Example:
 
 ```
 <script lang="ts">
@@ -103,7 +103,7 @@ And then start working on the content of the app in `+page.svelte`:
 
 If you get a 500 internal error-error then likely SSR is not disabled. Making a SvelteKit app a real SPA really requires two steps - adapter static and `ssr=false`
 
-Starterfiles on github: https://github.com/Tommertom/svelte-ionic-app/tree/main/starterfiles
+Starter files on github: https://github.com/Tommertom/svelte-ionic-app/tree/main/starter_files
 Use these files as reference to see how to do the final steps integrating Ionic in your svelte project.
 
 Code for this library - https://github.com/Tommertom/svelte-ionic-app
