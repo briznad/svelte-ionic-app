@@ -165,6 +165,8 @@ export async function createIonicSvelte(opts) {
   out('svelte.config.js', createSvelteConfig());
 
   if (opts.framework == 'svelte-kit' || opts.framework == 'svelte-kit-lib') {
+    const useTypescript = opts.types === 'typescript';
+
     mkdirp(path.join('src', 'lib'));
     mkdirp(path.join('src', 'theme'));
 
@@ -174,18 +176,18 @@ export async function createIonicSvelte(opts) {
 
     out(path.resolve(process.cwd(), 'src/routes/', '+layout.ts'), 'export const ssr = false;\n');
 
-    out(path.resolve(process.cwd(), 'src/routes/', '+layout.svelte'), parseLayout(opts.types === 'typescript'));
+    out(path.resolve(process.cwd(), 'src/routes/', '+layout.svelte'), parseLayout(useTypescript));
 
-    out(path.resolve(process.cwd(), 'src/lib/components/', 'Tabs.svelte'), parseTabsComponent(opts.types === 'typescript'));
+    out(path.resolve(process.cwd(), 'src/lib/components/', 'Tabs.svelte'), parseTabsComponent(useTypescript));
 
-    out(path.resolve(process.cwd(), 'src/routes/', '+page.svelte'), parsePage1(opts.types === 'typescript'));
+    out(path.resolve(process.cwd(), 'src/routes/', '+page.svelte'), parsePage1(useTypescript));
 
-    out(path.resolve(process.cwd(), 'src/routes/planets/', '+page.svelte'), parsePage2(opts.types === 'typescript'));
+    out(path.resolve(process.cwd(), 'src/routes/planets/', '+page.svelte'), parsePage2(useTypescript));
 
-    out(path.resolve(process.cwd(), 'src/routes/planets/earth/', '+page.svelte'), parsePage3(opts.types === 'typescript'));
+    out(path.resolve(process.cwd(), 'src/routes/planets/earth/', '+page.svelte'), parsePage3(useTypescript));
 
     // tsconfig
-    if (opts.types == 'typescript') {
+    if (useTypescript) {
       try {
         const tsconfig = fs.readFileSync('tsconfig.json', 'utf-8');
         //	console.log('Reading tsconfig ', tsconfig);
@@ -225,7 +227,16 @@ export async function createIonicSvelte(opts) {
         console.warn('TSconfig read/write error - ', e);
       }
 
-      if (opts.types != 'typescript')
+      if (useTypescript) {
+        out(
+          'capacitor.config.ts',
+          parseCapacitorConfig({
+            appId: opts.name + '.ionic.io',
+            appName: opts.name,
+            ip: ip.address() // 'http://192.168.137.1'
+          })
+        );
+      } else {
         out(
           'capacitor.config.json',
           `{
@@ -238,16 +249,7 @@ export async function createIonicSvelte(opts) {
 		}
 	}`
         );
-
-      if (opts.types == 'typescript')
-        out(
-          'capacitor.config.ts',
-          parseCapacitorConfig({
-            appId: opts.name + '.ionic.io',
-            appName: opts.name,
-            ip: ip.address() // 'http://192.168.137.1'
-          })
-        );
+      }
     }
   }
 
@@ -304,31 +306,4 @@ const config = {
 
 export default config;
 `;
-}
-
-// TODO - this is for monorepos only, need to see everything that needs to be modified for monorepos
-// currently packages are automatically added as a workspace reference if in a mono
-function createViteConfig(opts) {
-  let filename = '';
-  if (opts.types == 'typescript') {
-    filename = 'vite.config.ts';
-  } else {
-    filename = 'vite.config.js';
-  }
-  let vite = fs.readFileSync(filename);
-  const insertString = `,
-	server: {
-		fs: {
-			allow: ['../../packages/skeleton/']
-		}
-	}`;
-  const token = 'kit()]';
-  const insertPoint = vite.indexOf(token) + token.length;
-  const str = vite.slice(0, insertPoint) + insertString + vite.slice(insertPoint);
-  fs.writeFileSync(filename, str);
-}
-
-function out(filename, data) {
-  // console.log('WRITING', filename)
-  fs.writeFileSync(filename, data);
 }
