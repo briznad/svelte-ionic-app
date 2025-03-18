@@ -32,8 +32,8 @@ export {
 } from '@ionic/core';
 
 // from setupIonicReact
+// TYPES
 export type {
-	// TYPES
 	Animation,
 	AnimationBuilder,
 	AnimationCallbackOptions,
@@ -105,8 +105,8 @@ export type {
 	ToggleCustomEvent
 } from '@ionic/core/components';
 
+// UTILS
 export {
-	// UTILS
 	createAnimation,
 	createGesture,
 	iosTransitionAnimation,
@@ -114,28 +114,6 @@ export {
 	IonicSlides,
 	getTimeGivenProgression
 } from '@ionic/core/components';
-
-export * from './utils/controllers';
-export { navController } from './utils/navcontroller';
-
-export * from './utils/platform';
-
-export const setupIonicSvelte = async (config?: IonicConfig) => {
-	console.warn(
-		`setupIonicSvelte will be deprecated - use setupIonicBase and add import 'ionic-svelte/components/all'; - see https://github.com/Tommertom/svelte-ionic-npm/blob/main/CHANGELOG.md#0530 and also for module-shaking options to reduce the size of your bundle. `
-	);
-
-	/* Ionic initialisation */
-	initialize(config);
-
-	/* Loading webcomponents en styles */
-	console.warn('Ionic components not loaded - so your UI will appear broken.');
-
-	/* something else needed */
-	if (typeof (document as any) !== 'undefined') {
-		document.documentElement.classList.add('ion-ce');
-	}
-};
 
 export const setupIonicBase = async (config?: IonicConfig) => {
 	/* Ionic initialisation */
