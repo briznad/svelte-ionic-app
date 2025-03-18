@@ -23,7 +23,8 @@
   },
   "scripts": {
     "lint": "prettier  --check . && eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build": "cd scripts/ && node generator.js"
   },
   "type": "module",
   "devDependencies": {

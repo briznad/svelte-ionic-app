@@ -33,12 +33,6 @@ const doStuff = () => {
 	// load static
 	const coreJson = require('./core.json');
 
-	var dir = './generated';
-
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir);
-	}
-
 	const { components } = coreJson;
 
 	console.log('Component count', components.length);
